@@ -8,6 +8,7 @@ services:
     hostname: kafka
     ports:
       - "9092:9092"
+      - "9094:9094"
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
@@ -23,21 +24,19 @@ services:
 
   # Debezium Connect (Open Source - Apache License)
   debezium:
-    image: debezium/connect:2.5
+    image: debezium/connect:3.0.0.Final
     ports:
       - "8083:8083"
     depends_on:
       - kafka
-    environment:
-      BOOTSTRAP_SERVERS: kafka:9092
-      GROUP_ID: debezium-group
-      CONFIG_STORAGE_TOPIC: debezium_configs
-      OFFSET_STORAGE_TOPIC: debezium_offsets
-      STATUS_STORAGE_TOPIC: debezium_status
-      KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
-      VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
-      KEY_CONVERTER_SCHEMAS_ENABLE: "false"
-      VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+    volumes:
+      - ./configs:/configs
+    command: >
+      bash -c "
+      /kafka/bin/connect-standalone.sh
+      /configs/connect-standalone.properties
+      /configs/sqlserver-connector.properties
+      "
     networks:
       - kafka-network
 
