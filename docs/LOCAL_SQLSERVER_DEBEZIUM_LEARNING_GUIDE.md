@@ -617,3 +617,42 @@ local-sqlserver.CDC_Demo.dbo.Users
 6. the new row appeared in Kafka as a CDC event
 
 That is the repeatable reference flow for next time.
+
+## Docker Engine Failures
+
+### Error 7: Kafka UI not responding and Docker commands returning 500 errors
+
+#### Symptom
+
+Kafka UI stopped loading and Docker CLI commands like `docker ps` or `docker exec` failed with:
+
+```text
+500 Internal Server Error: dockerDesktopLinuxEngine
+```
+
+#### Why it happened
+
+The Docker Desktop WSL backend became unresponsive. The Docker daemon stopped communicating properly with the CLI, even though containers appeared to still be running.
+
+#### Fix
+
+1. Force close all Docker processes
+2. Run `wsl --shutdown` to completely stop WSL
+3. Restart Docker Desktop
+4. Wait for the engine to fully initialize before running commands
+
+#### Outcome
+
+Container networking and Kafka UI access were restored after the Docker engine restarted cleanly.
+
+#### Key Learning
+
+Infrastructure problems at the Docker level can break the entire stack (Kafka, Debezium, UI) even when containers seem fine. When you see API errors or unresponsive services, check Docker engine health first.
+
+#### What to check next time
+
+- Can you run basic Docker commands like `docker ps`?
+- Is Docker Desktop actually running?
+- On Windows, is WSL responsive?
+- Try restarting Docker Desktop if you see 500 errors
+- Use `wsl --shutdown` if Docker Desktop restart doesn't resolve it
